@@ -3,13 +3,30 @@ from numpy import *
 import scipy.interpolate as interp
 import pdb
 
+# takes a numpy array and pads with 0's to make the dimensions square
+def pad_to_square(arr):
+  diff = arr.shape[0] - arr.shape[1]
+  if diff < 0:
+    pad_rows = abs(diff)/2
+    padding = zeros(pad_rows * arr.shape[1]).reshape(pad_rows, -1)
+    arr = vstack((padding, arr, padding))
+  elif diff > 0:
+    pad_cols = diff/2
+    padding = zeros(pad_cols * arr.shape[0]).reshape(-1, pad_cols)
+    arr = hstack((padding, arr, padding))
+  return arr
+  
+
+
 phases_in = load("final-phases.npy")
+
+phases_in = pad_to_square(phases_in)
 
 #x_dim = 720
 #y_dim = 1440
 
-x_dim = 720
-y_dim = 720
+x_dim = 1440
+y_dim = 1440
 
 x0 = 00
 y0 = 00
@@ -38,6 +55,8 @@ fig1 = plt.figure(1)
 fig1.suptitle("Original")
 plt.imshow(phases, interpolation="none")
 plt.colorbar()
+plt.savefig("1440x1440-orig.png")
+print("Saved: 1440x1440-orig.png")
 
 for j, method in enumerate(('nearest', 'linear', 'cubic')):
   i = interp.griddata(points, phases.reshape(-1), interp_points, method=method)
@@ -47,6 +66,7 @@ for j, method in enumerate(('nearest', 'linear', 'cubic')):
   i = i.reshape(int(x_dim*scaling_factor),int(y_dim*scaling_factor))
   plt.imshow(i, interpolation="none")
   plt.colorbar()
+  plt.savefig("1440x1440-{0}.png".format(method))
+  print("Saved: 1440x1440-{0}.png".format(method))
 
 plt.show(block="true")
-plt.savefig("123.png")
