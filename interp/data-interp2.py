@@ -9,10 +9,10 @@ phases_in = load("final-phases.npy")
 #y_dim = 1440
 
 x_dim = 720
-y_dim = 1000
+y_dim = 720
 
-x0 = 0
-y0 = 0
+x0 = 00
+y0 = 00
 
 # NOTE: must be float to avoid integer division later on
 scaling_factor = 5.0
