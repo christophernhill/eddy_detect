@@ -1,0 +1,7 @@
+# ignore large mat lab files
+*.mat
+
+# ignore specific large numpy arrays
+interped-data.npy
+phases-rectvicarspline-linear.npy
+
