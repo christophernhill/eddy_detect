@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from numpy import *
 import scipy.interpolate as interp
 import pdb
+import sys
 
 # takes a numpy array and pads with 0's to make the dimensions square
 def pad_to_square(arr):
@@ -16,23 +17,36 @@ def pad_to_square(arr):
     arr = hstack((padding, arr, padding))
   return arr
   
+if len(sys.argv) != 6:
+  x_dim = 100
+  y_dim = 100
+  x0 = 500
+  y0 = 500
+  # must be float to avoid integer division later
+  scaling_factor = 5.0
+else:
+  x_dim = int(sys.argv[1])
+  y_dim = int(sys.argv[2])
+  x0 = int(sys.argv[3])
+  y0 = int(sys.argv[4])
+  # must be float to avoid integer division later
+  scaling_factor = float(sys.argv[5])
 
 
+print("""
+=============
+Running with:
+x_dim = {0}
+y_dim = {1}
+x0 = {2}
+y0 = {3}
+scaling_factor = {4}
+============""".format(x_dim, y_dim, x0, y0, scaling_factor))
+
+  
 phases_in = load("final-phases.npy")
 
 phases_in = pad_to_square(phases_in)
-
-#x_dim = 720
-#y_dim = 1440
-
-x_dim = 100
-y_dim = 100
-
-x0 = 500
-y0 = 500
-
-# NOTE: must be float to avoid integer division later on
-scaling_factor = 5.0
 
 # interpolate on just a window of the total dataset
 phases = phases_in[x0:x0+x_dim,y0:y0+y_dim]
