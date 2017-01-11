@@ -25,11 +25,11 @@ phases_in = pad_to_square(phases_in)
 #x_dim = 720
 #y_dim = 1440
 
-x_dim = 1440
-y_dim = 1440
+x_dim = 100
+y_dim = 100
 
-x0 = 00
-y0 = 00
+x0 = 500
+y0 = 500
 
 # NOTE: must be float to avoid integer division later on
 scaling_factor = 5.0
@@ -55,8 +55,8 @@ fig1 = plt.figure(1)
 fig1.suptitle("Original")
 plt.imshow(phases, interpolation="none")
 plt.colorbar()
-plt.savefig("1440x1440-orig.png")
-print("Saved: 1440x1440-orig.png")
+plt.savefig("{0}x{1}-orig.png".format(x_dim, y_dim))
+print("Saved: {0}x{1}-orig.png".format(x_dim, y_dim))
 
 for j, method in enumerate(('nearest', 'linear', 'cubic')):
   i = interp.griddata(points, phases.reshape(-1), interp_points, method=method)
@@ -64,9 +64,13 @@ for j, method in enumerate(('nearest', 'linear', 'cubic')):
   figure.suptitle(method)
   i = nan_to_num(i)
   i = i.reshape(int(x_dim*scaling_factor),int(y_dim*scaling_factor))
+  save("{0}x{1}-{2}.npy".format(int(x_dim*scaling_factor), int(y_dim*scaling_factor),method),i)
+  print("Saved: {0}x{1}-{2}.npy".format(int(x_dim*scaling_factor), int(y_dim*scaling_factor),method))
   plt.imshow(i, interpolation="none")
   plt.colorbar()
-  plt.savefig("1440x1440-{0}.png".format(method))
-  print("Saved: 1440x1440-{0}.png".format(method))
+  plt.savefig("{0}x{1}-{2}.png".format(int(x_dim*scaling_factor), int(y_dim*scaling_factor),method))
+
+  print("Saved: {0}x{1}-{2}.png".format(int(x_dim*scaling_factor), int(y_dim*scaling_factor),method))
+
 
 plt.show(block="true")
