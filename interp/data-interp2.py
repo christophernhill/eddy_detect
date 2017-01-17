@@ -8,14 +8,14 @@ import sys
 # @returns: tuple of the padded array, and the (x,y) pair representing the adjustment
 # to coordinates on the original array
 def pad_to_square(arr):
+  # width = arr.shape[0], height = arr.shape[1]
   diff = arr.shape[0] - arr.shape[1]
   shift = (0,0)
   if diff < 0:
-    pdb.set_trace()
     pad_rows = abs(diff)/2
     padding = zeros(pad_rows * arr.shape[1]).reshape(pad_rows, -1)
     arr = vstack((padding, arr, padding))
-    shift = (pad_rows, 0)
+    shift = (0, pad_rows)
   elif diff > 0:
     pad_cols = diff/2
     padding = zeros(pad_cols * arr.shape[0]).reshape(-1, pad_cols)
@@ -73,12 +73,11 @@ phases_in = load("final-phases.npy")
 # full data set padded to be a square matrix
 phases_in, shift  = pad_to_square(phases_in)
 
-x0 += shift[1]
-y0 += shift[0]
+x0 += shift[0]
+y0 += shift[1]
 
 # interpolate on just a window of the total dataset
 phases = phases_in[x0:x0+x_dim,y0:y0+y_dim]
-pdb.set_trace()
 
 # Now, instead of interpolating on the phases, split the phases into componenets and interpolate on these
 phase_x = cos(phases)
@@ -105,7 +104,6 @@ for data, output in zip([phase_x, phase_y], [x_interp, y_interp]):
 
   # interpolate data using each of the three available methods
   for j, method in enumerate(('nearest', 'linear', 'cubic')):
-    pdb.set_trace()
     i = interp.griddata(points, data.reshape(-1), interp_points, method=method)
     i = nan_to_num(i)
     i = i.reshape(int(x_dim*scaling_factor),int(y_dim*scaling_factor))
