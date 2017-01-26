@@ -13,7 +13,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.cross_validation import train_test_split, cross_val_score
 from sklearn.grid_search import GridSearchCV
 import scipy.io as sio
-import numpy as np 
+import numpy as np
 import load_features
 from load_features import get_feature_label
 from train_model import train_and_tune_SVC, train_and_tune_RFC, score_train_test
@@ -22,135 +22,135 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import pickle
 import pdb
 
-def border_indices(center_i,center_j,polarity,r):
-        x = np.array([])
-        y = np.array([])
-        if polarity == 1:                                       # CCW
-                for i in range(center_i-r, center_i+r+1):
-                        j= (r**2 - (i-center_i)**2)**0.5 + center_j
-                        y = np.append(y, round(i))
-                        x = np.append(x, round(j))
 
-                for i in range(center_i+r, center_i-r-1, -1):
-                        j= center_j - (r**2 - (i-center_i)**2)**0.5
-                        y = np.append(y, round(i))
-                        x = np.append(x, round(j))
-        
-        elif polarity == -1:                                       # CW
-                for i in range(center_i+r, center_i-r-1, -1):
-                        j= center_j - (r**2 - (i-center_i)**2)**0.5
-                        y = np.append(y, round(i))
-                        x = np.append(x, round(j))
+def border_indices(center_i, center_j, polarity, r):
+    x = np.array([])
+    y = np.array([])
+    if polarity == 1:                                       # CCW
+        for i in range(center_i - r, center_i + r + 1):
+            j = (r**2 - (i - center_i)**2)**0.5 + center_j
+            y = np.append(y, round(i))
+            x = np.append(x, round(j))
 
-                for i in range(center_i-r, center_i+r+1):
-                        j= (r**2 - (i-center_i)**2)**0.5 + center_j
-                        y = np.append(y, round(i))
-                        x = np.append(x, round(j))
+        for i in range(center_i + r, center_i - r - 1, -1):
+            j = center_j - (r**2 - (i - center_i)**2)**0.5
+            y = np.append(y, round(i))
+            x = np.append(x, round(j))
 
-        return x, y
+    elif polarity == -1:                                       # CW
+        for i in range(center_i + r, center_i - r - 1, -1):
+            j = center_j - (r**2 - (i - center_i)**2)**0.5
+            y = np.append(y, round(i))
+            x = np.append(x, round(j))
+
+        for i in range(center_i - r, center_i + r + 1):
+            j = (r**2 - (i - center_i)**2)**0.5 + center_j
+            y = np.append(y, round(i))
+            x = np.append(x, round(j))
+
+    return x, y
 
 
 def integrate_phase(snapshot, center_i, center_j, r):
-        H, W = snapshot.shape
-        x, y = np.meshgrid(np.arange(W), np.arange(H))
-        d2 = (x - center_j)**2 + (y - center_i)**2
-        mask = d2 <= r**2
-        all_points = np.sum(mask)
-        #phase_sum = np.sum(snapshot[np.where(mask>0)])
-        phase_sum = np.sum(  np.sin(snapshot[np.where(mask>0)]*np.pi/180.0)  )
-        phase_norm = phase_sum/float(all_points)
-        return mask, phase_sum, phase_norm
+    H, W = snapshot.shape
+    x, y = np.meshgrid(np.arange(W), np.arange(H))
+    d2 = (x - center_j)**2 + (y - center_i)**2
+    mask = d2 <= r**2
+    all_points = np.sum(mask)
+    #phase_sum = np.sum(snapshot[np.where(mask>0)])
+    phase_sum = np.sum(np.sin(snapshot[np.where(mask > 0)] * np.pi / 180.0))
+    phase_norm = phase_sum / float(all_points)
+    return mask, phase_sum, phase_norm
 
 
-def get_eddy_radius(snapshot, center_i, center_j,polarity):
-	s =np.array([])
-	inter =np.array([])
-	rv =np.array([])
-	rv2 =np.array([])
-	pv =np.array([])
-	H, W = snapshot.shape
+def get_eddy_radius(snapshot, center_i, center_j, polarity):
+    s = np.array([])
+    inter = np.array([])
+    rv = np.array([])
+    rv2 = np.array([])
+    pv = np.array([])
+    H, W = snapshot.shape
 
-	r = 20
-	while (1):
-		r += 1
-                if r+center_i >= H-4 or center_i-r < 4 or r+center_j >= W-4 or center_j-r < 4:
-                        break
+    r = 20
+    while (1):
+        r += 1
+        if r + center_i >= H - 4 or center_i - r < 4 or r + center_j >= W - 4 or center_j - r < 4:
+            break
 
-		x, y = border_indices(center_i, center_j, polarity, r)
-		x = x.astype(int)
-		y = y.astype(int)
-		phase = snapshot[y,x]
-		
-		##############  getting radius by a linear fit  ################
-		
-		index = np.array(range(0, len(phase)))
-		slope, intercept, r_value, p_value, std_err = stats.linregress(index,phase)
-		s = np.append(s, slope)
-		inter = np.append(inter, intercept)
-		rv = np.append(rv, r_value)
-		rv2 = np.append(rv2, r_value**2)
-		pv = np.append(pv, p_value)
-		
-		if r_value**2 <= 0.80:
-			break
-		
-		################################################################
-
-
-
-        x = np.array([])
-        y = np.array([])
-        for i in range(-2,3):
-                a, b = border_indices(center_i, center_j, 1, r+i)
-                a = a.astype(int)
-                a = a.astype(int)
-                x = np.append(x,a)
-                y = np.append(y,b)
+        x, y = border_indices(center_i, center_j, polarity, r)
         x = x.astype(int)
         y = y.astype(int)
+        phase = snapshot[y, x]
 
-	return r, y, x, r_value**2, p_value
+        ##############  getting radius by a linear fit  ################
 
+        index = np.array(range(0, len(phase)))
+        slope, intercept, r_value, p_value, std_err = stats.linregress(
+            index, phase)
+        s = np.append(s, slope)
+        inter = np.append(inter, intercept)
+        rv = np.append(rv, r_value)
+        rv2 = np.append(rv2, r_value**2)
+        pv = np.append(pv, p_value)
+
+        if r_value**2 <= 0.80:
+            break
+
+        ################################################################
+
+    x = np.array([])
+    y = np.array([])
+    for i in range(-2, 3):
+        a, b = border_indices(center_i, center_j, 1, r + i)
+        a = a.astype(int)
+        a = a.astype(int)
+        x = np.append(x, a)
+        y = np.append(y, b)
+    x = x.astype(int)
+    y = y.astype(int)
+
+    return r, y, x, r_value**2, p_value
 
 
 def get_eddy_domain(snapshot, center_i, center_j):
-	H, W = snapshot.shape
-        r = 20
-        while (1):
-                r += 1
-                if r+center_i >= H-4 or center_i-r < 4 or r+center_j >= W-4 or center_j-r < 4:
-                        break 
+    H, W = snapshot.shape
+    r = 20
+    while (1):
+        r += 1
+        if r + center_i >= H - 4 or center_i - r < 4 or r + center_j >= W - 4 or center_j - r < 4:
+            break
 
-                x, y = border_indices(center_i, center_j, 1, r)
-                x = x.astype(int)
-                y = y.astype(int)
+        x, y = border_indices(center_i, center_j, 1, r)
+        x = x.astype(int)
+        y = y.astype(int)
 
-		mask, phase_sum, phase_norm = integrate_phase(snapshot, center_i, center_j, r)	
-		oscillators = np.sum(mask)
-                if abs(phase_sum) >= 3.5*oscillators:
-                        break
+        mask, phase_sum, phase_norm = integrate_phase(
+            snapshot, center_i, center_j, r)
+        oscillators = np.sum(mask)
+        if abs(phase_sum) >= 3.5 * oscillators:
+            break
 
-	x = np.array([])
-	y = np.array([])
-	for i in range(-1,2):
-	        a, b = border_indices(center_i, center_j, 1, r+i)
-        	a = a.astype(int)
-	        a = a.astype(int)
-		x = np.append(x,a)
-		y = np.append(y,b)
-	x = x.astype(int)
-	y = y.astype(int)
-	return r, mask, y, x, phase_sum, phase_norm	
+    x = np.array([])
+    y = np.array([])
+    for i in range(-1, 2):
+        a, b = border_indices(center_i, center_j, 1, r + i)
+        a = a.astype(int)
+        a = a.astype(int)
+        x = np.append(x, a)
+        y = np.append(y, b)
+    x = x.astype(int)
+    y = y.astype(int)
+    return r, mask, y, x, phase_sum, phase_norm
 
 
 def get_sla(itnum):
-        dataset = sio.loadmat('provide file path' % itnum)
-        ssh = dataset['ssh']
-        col = dataset['col']
-        row = dataset['row']
-        ssh = ssh.reshape(row[0], col[0])
-        ssh[np.isnan(ssh)] = np.nanmean(ssh)
-        return ssh
+    dataset = sio.loadmat('provide file path' % itnum)
+    ssh = dataset['ssh']
+    col = dataset['col']
+    row = dataset['row']
+    ssh = ssh.reshape(row[0], col[0])
+    ssh[np.isnan(ssh)] = np.nanmean(ssh)
+    return ssh
 
 
 def get_vort(itnum):
@@ -164,17 +164,10 @@ def get_vort(itnum):
 
 
 def get_mask():
-	# provide your own mask fuction for the region of your interest
-	# the function returns the location indecies and the correspondin lat/lon of the land data points	
-        return cols, rows, mask_lon[cols], mask_lat[rows]
-
-
-
-
-
-
-
-
+    # provide your own mask fuction for the region of your interest
+    # the function returns the location indecies and the correspondin lat/lon
+    # of the land data points
+    return cols, rows, mask_lon[cols], mask_lat[rows]
 
 
 f_width = load_features.f_width
@@ -182,117 +175,113 @@ f_height = load_features.f_height
 samples = load_features.samples
 
 #########################  Load Features  #########################
-features, eddy, polarity = get_feature_label(2)       # X: feature matrix      y1: eddy vector       y2: polarity vertor 
+# X: feature matrix      y1: eddy vector       y2: polarity vertor
+features, eddy, polarity = get_feature_label(2)
 ###################################################################
 
 
 ##########################  Classifiers  ##########################
 # use the helper functions in the train_model.py file to train and validate and evaluate
-### load trained classifieres
+# load trained classifieres
 clf = pickle.load(open('clf_core.pck', 'rb'))
 clf_polarity = pickle.load(open('clf_pol.pck', 'rb'))
 
 
-
-
 ######################  Load Vphase Snapshot  ######################
 for itnum in range(1):
-  tic = time.clock()
-  vphase_path = 'provide file path'
-  dataset_2pi = np.load("{0}.npy".format(sys.argv[1]))
-  #dataset_pi2 = sio.loadmat('%svphase_pi2_%10.10d.mat' % (vphase_path,itnum))
-  #dataset_pi = sio.loadmat('%svphase_pi_%10.10d.mat' % (vphase_path,itnum))
-  #dataset_pi = dataset_2pi
-  vphase_2pi = dataset_2pi
-  #vphase_pi2 = dataset_pi2['phase']
-  #vphase_pi = dataset_pi['phase']
-  snapshot = vphase_2pi
-  snapshot = np.nan_to_num(snapshot)
-  marked_snapshot = snapshot
-  eddy_cores = 0 * snapshot
-  #snapshot_pi = vphase_pi
-  #snapshot_pi = np.nan_to_num(snapshot_pi)
-  #marked_sla = get_sla(itnum)
-  #marked_vort = get_vort(itnum)
-  radius = int(f_width/2)
-  height = snapshot.shape[0] /1
-  width = snapshot.shape[1] /1
+    tic = time.clock()
+    vphase_path = 'provide file path'
+    dataset_2pi = np.load("{0}.npy".format(sys.argv[1]))
+    #dataset_pi2 = sio.loadmat('%svphase_pi2_%10.10d.mat' % (vphase_path,itnum))
+    #dataset_pi = sio.loadmat('%svphase_pi_%10.10d.mat' % (vphase_path,itnum))
+    #dataset_pi = dataset_2pi
+    vphase_2pi = dataset_2pi
+    #vphase_pi2 = dataset_pi2['phase']
+    #vphase_pi = dataset_pi['phase']
+    snapshot = vphase_2pi
+    snapshot = np.nan_to_num(snapshot)
+    marked_snapshot = snapshot
+    eddy_cores = 0 * snapshot
+    #snapshot_pi = vphase_pi
+    #snapshot_pi = np.nan_to_num(snapshot_pi)
+    #marked_sla = get_sla(itnum)
+    #marked_vort = get_vort(itnum)
+    radius = int(f_width / 2)
+    height = snapshot.shape[0] / 1
+    width = snapshot.shape[1] / 1
 
+    identified_eddies = 0
+    identified_ccw = 0
+    identified_cw = 0
+    eddy_centers_i = np.array([])
+    eddy_centers_j = np.array([])
+    eddy_polarity = np.array([])
+    eddy_radius = np.array([])
+    radius_rv2 = np.array([])
+    radius_pv = np.array([])
+    print("Width = " + str(width))
+    print("Height = " + str(height))
 
+    eddy_coords = []
 
+    for center_i in range(radius, height - radius):
+        for center_j in range(radius, width - radius):
+            try:
+                if eddy_cores[center_i, center_j] <> 0:
+                    continue
+                snapshot_cut = snapshot[
+                    center_i - radius:center_i + radius + 1, center_j - radius:center_j + radius + 1]
+                if clf.predict(snapshot_cut.reshape(f_width * f_height).reshape(1, -1))[0] == 1:
+                    print(str((center_i, center_j)) + " is an eddy!")
+                    eddy_coords.append((center_i, center_j))
+                    pred_pol = clf_polarity.predict(snapshot_cut.reshape(
+                        f_width * f_height).reshape(1, -1))[0]  # Identify Polarity
+                    try:
+                        ###################  settining eddy radius using phase
+                        edd_radius, indices_i, indices_j, rv2, pv = get_eddy_radius(
+                            snapshot, center_i, center_j, pred_pol)
+                        if edd_radius < 25:  # min radius
+                            continue
+                        identified_eddies += 1
+                        eddy_cores[center_i - radius:center_i + radius +
+                                   1, center_j - radius:center_j + radius + 1] = 1
+                        eddy_centers_i = np.append(eddy_centers_i, center_i)
+                        eddy_centers_j = np.append(eddy_centers_j, center_j)
+                        eddy_polarity = np.append(eddy_polarity, pred_pol)
+                        eddy_radius = np.append(eddy_radius, edd_radius)
+                        radius_rv2 = np.append(radius_rv2, rv2)
+                        radius_pv = np.append(radius_pv, pv)
+                        if pred_pol == 1:
+                            identified_ccw += 1
+                            marked_snapshot[
+                                center_i - radius:center_i + radius + 1, center_j - radius:center_j + radius + 1] = -1
+                            #marked_sla[center_i-radius:center_i+radius+1 , center_j-radius:center_j+radius+1] = 30
+                            marked_snapshot[indices_i, indices_j] = -1
+                            #marked_sla[indices_i, indices_j] = 30
+                        else:
+                            identified_cw += 1
+                            marked_snapshot[center_i - radius:center_i + radius +
+                                            1, center_j - radius:center_j + radius + 1] = 370
+                            #marked_sla[center_i-radius:center_i+radius+1 , center_j-radius:center_j+radius+1] = -30
+                            marked_snapshot[indices_i, indices_j] = 370
+                            #marked_sla[indices_i, indices_j] = -30
+                        #######################################################
+                    except Exception as e:
+                        continue
+                        print('Exception: ', str(e))
+            except Exception as e:
+                print('Error:  ', str(e))
+    toc = time.clock()
+    print('process time: ', toc - tic)
+    store_path = 'provide file path'
 
-  identified_eddies = 0
-  identified_ccw = 0
-  identified_cw = 0
-  eddy_centers_i = np.array([])
-  eddy_centers_j = np.array([])
-  eddy_polarity = np.array([])
-  eddy_radius = np.array([])
-  radius_rv2 = np.array([])
-  radius_pv = np.array([])
-  print("Width = "+str(width))
-  print("Height = "+str(height))
+    print('----------------------------')
+    print('itnum: ', itnum)
+    print('Identified Eddied: ', identified_eddies)
+    print('Identified CCW: ', identified_ccw)
+    print('Identified CW: ', identified_cw)
+    print('----------------------------')
+    print('')
 
-  eddy_coords = []
-
-  for center_i in range(radius , height-radius):
-    for center_j in range(radius , width-radius):
-      try:
-        if eddy_cores[center_i, center_j] <> 0:
-          continue
-        snapshot_cut = snapshot[center_i-radius:center_i+radius+1 , center_j-radius:center_j+radius+1]
-        if clf.predict(snapshot_cut.reshape(f_width*f_height).reshape(1,-1))[0] == 1:
-          print(str((center_i, center_j)) +" is an eddy!")
-          eddy_coords.append((center_i, center_j))
-          pred_pol = clf_polarity.predict(snapshot_cut.reshape(f_width*f_height).reshape(1,-1))[0]	###  Identify Polarity
-          try:
-              ###################  settining eddy radius using phase on the border  #######################
-              edd_radius, indices_i, indices_j, rv2, pv = get_eddy_radius(snapshot, center_i, center_j, pred_pol)
-	      if edd_radius < 25:		#####  min radius
-		continue
-              identified_eddies += 1
-              eddy_cores[center_i-radius:center_i+radius+1 , center_j-radius:center_j+radius+1] = 1
-              eddy_centers_i = np.append(eddy_centers_i , center_i)
-              eddy_centers_j = np.append(eddy_centers_j , center_j)
-	      eddy_polarity = np.append(eddy_polarity , pred_pol)	
-              eddy_radius = np.append(eddy_radius , edd_radius)
-              radius_rv2 = np.append(radius_rv2 , rv2)
-              radius_pv = np.append(radius_pv , pv)
-	      if pred_pol == 1:	
-                identified_ccw += 1
-                marked_snapshot[center_i-radius:center_i+radius+1 , center_j-radius:center_j+radius+1] = -1
-                #marked_sla[center_i-radius:center_i+radius+1 , center_j-radius:center_j+radius+1] = 30 
-                marked_snapshot[indices_i, indices_j] = -1
-                #marked_sla[indices_i, indices_j] = 30 
-	      else:
-                identified_cw += 1
-                marked_snapshot[center_i-radius:center_i+radius+1 , center_j-radius:center_j+radius+1] = 370
-                #marked_sla[center_i-radius:center_i+radius+1 , center_j-radius:center_j+radius+1] = -30
-                marked_snapshot[indices_i, indices_j] = 370
-                #marked_sla[indices_i, indices_j] = -30
-              #############################################################################################
-          except Exception as e:
-	      continue
-              print('Exception: ' , str(e))
-      except Exception as e:
-        print('Error:  ' , str(e))
-  toc = time.clock()
-  print('process time: ', toc-tic)
-  store_path = 'provide file path'
-
-  print('----------------------------')
-  print('itnum: ',itnum)
-  print('Identified Eddied: ',identified_eddies)
-  print('Identified CCW: ', identified_ccw)
-  print('Identified CW: ', identified_cw)
-  print('----------------------------')
-  print('')
-
-  a = np.array(eddy_coords)
-  np.save("eddy_coords.npy", a)
-
-
-
-
-
-
+    a = np.array(eddy_coords)
+    np.save("eddy_coords.npy", a)
