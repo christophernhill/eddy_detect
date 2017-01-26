@@ -234,9 +234,7 @@ for itnum in range(1):
   print("Height = "+str(height))
   time.sleep(5)
   for center_i in range(radius , 3000):
-    print(str(center_i) + " of 3000")
     for center_j in range(radius , 3000):
-      print(str((center_i, center_j)))
       try:
         if eddy_cores[center_i, center_j] <> 0:
           continue

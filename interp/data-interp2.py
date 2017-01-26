@@ -67,14 +67,31 @@ y0 = {3}
 scaling_factor = {4}
 ============""".format(x_dim, y_dim, x0, y0, scaling_factor))
 
+# NOTE: some thing in the interpolation flips the axises between final-phases.npy and the output inteprolated data
+# so this has to be done to make the coordinate systems match up
+x_dim, y_dim = (y_dim, x_dim)
+x0, y0 = (y0, x0)
+
+
+print("""
+=============
+Running with:
+x_dim = {0}
+y_dim = {1}
+x0 = {2}
+y0 = {3}
+scaling_factor = {4}
+============""".format(x_dim, y_dim, x0, y0, scaling_factor))
+
 # full data set 
 phases_in = load("final-phases.npy")
 
 # full data set padded to be a square matrix
 phases_in, shift  = pad_to_square(phases_in)
 
-x0 += shift[0]
-y0 += shift[1]
+# I am 50% sure this is the correct assignment
+x0 += shift[1]
+y0 += shift[0]
 
 # interpolate on just a window of the total dataset
 phases = phases_in[x0:x0+x_dim,y0:y0+y_dim]

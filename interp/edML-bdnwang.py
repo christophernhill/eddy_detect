@@ -200,7 +200,7 @@ clf_polarity = pickle.load(open('clf_pol.pck', 'rb'))
 for itnum in range(1):
   tic = time.clock()
   vphase_path = 'provide file path'
-  dataset_2pi = np.load("final-phases.npy")
+  dataset_2pi = np.load("cropped-training.npy")
   for x in np.nditer(dataset_2pi, op_flags=['readwrite']):
 	x[...] = x * 360 / (2*math.pi)
 
@@ -240,9 +240,7 @@ for itnum in range(1):
   print("Height = "+str(height))
   time.sleep(5)
   for center_i in range(radius , height-radius):
-    print(str(center_i) + " of rows")
     for center_j in range(radius , width-radius):
-      print(str((center_i, center_j)))
       try:
         if eddy_cores[center_i, center_j] <> 0:
           continue
