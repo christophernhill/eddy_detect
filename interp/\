@@ -1,0 +1,43 @@
+import pylab
+from numpy import *
+import scipy.interpolate as interp
+
+phases = load("final-phases.npy")
+
+
+sf = 4 # scaling factor
+
+x = arange(720*sf, step=sf)
+y = arange(1440*sf, step=sf)
+
+xx, yy = meshgrid(x,y)
+
+points = hstack((xx.reshape(-1, 1), yy.reshape(-1,1)))
+
+values = phases.reshape(-1)
+
+grid_x, grid_y = mgrid[0:720*4, 0:1440*4]
+
+x2 = arange(720*sf)
+y2 = arange(1440*sf)
+
+XX, YY = meshgrid(x2, y2)
+
+xi = hstack((XX.reshape(-1,1), YY.reshape(-1,1)))
+
+grid_x, grid_y = mgrid[0:720*sf, 0:1440*sf]
+
+nearest = interp.griddata(points, values, (grid_y, grid_x), method="nearest")
+
+linear = interp.griddata(points, values, (grid_y, grid_x), method="linear")
+
+cubic = interp.griddata(points, values, (grid_y, grid_x), method="cubic")
+
+import matplotlib.pyplot as plt
+plt.imshow(output.T, extent=(0, 720*sf, 0, 1440*sf), origin='lower')
+plt.title('Interpolated')
+plt.show()
+
+save("interped-data.npy", output)
+
+print("finished")
