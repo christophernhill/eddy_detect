@@ -71,6 +71,10 @@ def get_eddy_radius(snapshot, center_i, center_j, polarity):
     pv = np.array([])
     H, W = snapshot.shape
 
+    # set these here in case the break triggers in the while loop and it is never set
+    r_value = 0
+    p_value = 0
+
     r = 20
     while (1):
         r += 1
@@ -230,8 +234,6 @@ class EddyML:
             eddy_radius = np.array([])
             radius_rv2 = np.array([])
             radius_pv = np.array([])
-            import pdb
-            pdb.set_trace()
             print("Width = " + str(width))
             print("Height = " + str(height))
 
@@ -249,7 +251,6 @@ class EddyML:
                             eddy_coords.append((center_i, center_j))
                             pred_pol = clf_polarity.predict(snapshot_cut.reshape(
                                 f_width * f_height).reshape(1, -1))[0]  # Identify Polarity
-                            pdb.set_trace()
                             try:
                                 ###################  settining eddy radius using phase
                                 edd_radius, indices_i, indices_j, rv2, pv = get_eddy_radius(
@@ -257,7 +258,6 @@ class EddyML:
                                 if edd_radius < 25:  # min radius
                                     continue
                                 identified_eddies += 1
-                                pdb.set_trace()
                                 eddy_cores[center_i - radius:center_i + radius +
                                            1, center_j - radius:center_j + radius + 1] = 1
                                 eddy_centers_i = np.append(eddy_centers_i, center_i)
@@ -268,7 +268,6 @@ class EddyML:
                                 radius_pv = np.append(radius_pv, pv)
                                 if pred_pol == 1:
                                     identified_ccw += 1
-                                    pdb.set_trace()
                                     marked_snapshot[
                                         center_i - radius:center_i + radius + 1, center_j - radius:center_j + radius + 1] = -1
                                     #marked_sla[center_i-radius:center_i+radius+1 , center_j-radius:center_j+radius+1] = 30
@@ -276,7 +275,6 @@ class EddyML:
                                     #marked_sla[indices_i, indices_j] = 30
                                 else:
                                     identified_cw += 1
-                                    pdb.set_trace()
                                     marked_snapshot[center_i - radius:center_i + radius +
                                                     1, center_j - radius:center_j + radius + 1] = 370
                                     #marked_sla[center_i-radius:center_i+radius+1 , center_j-radius:center_j+radius+1] = -30
@@ -303,6 +301,6 @@ class EddyML:
             a = np.array(eddy_coords)
             np.save("eddy_coords.npy", a)
             
-            eddy_centers = hstack(eddy_centers_i.reshape(-1, 1), eddy_centers_j.reshape(-1,1))
+            eddy_centers = np.hstack((eddy_centers_i.reshape(-1, 1), eddy_centers_j.reshape(-1,1)))
             
             return (eddy_centers, eddy_polarity, eddy_radius) 
