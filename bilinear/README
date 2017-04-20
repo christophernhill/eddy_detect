@@ -1,0 +1,8 @@
+to map velocities for iteration 288, run:
+
+  ./dorotateuv.py offline/UVELMASS/day.0000000288.data offline/VVELMASS/day.0000000288.data UE.0000000288.data VN.0000000288.data
+  ./dointerpvel.py interp/ll4x4invconf 4 UE.0000000288.data ll_UE.data
+  ./dointerpvel.py interp/ll4x4invconf 4 VN.0000000288.data ll_VN.data
+
+interpolation weight are in interp/, they can be regenerated with the scripts in weights/
+
