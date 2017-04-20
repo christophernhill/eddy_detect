@@ -2,6 +2,7 @@ import math
 import numpy as np
 from pylab import *
 import subprocess
+import pdb
 
 class GeneratePhases:
 
@@ -20,22 +21,24 @@ class GeneratePhases:
             return math.atan(v/u) + math.pi
     def generate(self, day, layers):
         # get the UVELMASS and VVELMASS files and convert them using Oliver's methods
-        cmd1 = "./dorotateuv.py {1}/UVELMASS/day.{0}.data {1}/VVELMASS/day.{0}.data UE.{0}.data VN.{0}.data".format(day, self.offline_path)
-        cmd2 = "./dointerpvel.py interp/ll4x4invconf 4 UE.{0}.data generate-temp-u.data".format(day)
-        cmd3 = "./dointerpvel.py interp/ll4x4invconf 4 VN.{0}.data generate-temp-v.data".format(day)
+        cmds = []
+        cmds.append("python ./preprocess-ecco-data.py {1}/UVELMASS/day.{0}.data ./avgUVEL-day.{0}.npy".format(day, self.offline_path))
+        cmds.append("python ./preprocess-ecco-data.py {1}/VVELMASS/day.{0}.data ./avgVVEL-day.{0}.npy".format(day, self.offline_path))
+        cmds.append("python ./dorotateuv.py ./avgUVEL-day.{0}.npy ./avgVVEL-day.{0}.npy ./UE.{0}.data ./VN.{0}.data".format(day))
+        cmds.append("./dointerpvel.py ./interp/ll4x4invconf 4 ./UE.{0}.data ./generate-temp-u.data".format(day))
+        cmds.append("./dointerpvel.py ./interp/ll4x4invconf 4 ./VN.{0}.data ./generate-temp-v.data".format(day))
 
-        subprocess.call([cmd1])
-        subprocess.call([cmd2])
-        subprocess.call([cmd3])
+        for cmd in cmds:
+        # Note on subprocess.call usage: set shell = True, to allow for expansion of '.' to working directory
+            subprocess.call(cmd, shell=True)
+
+        print("...Finished bilinear interpolation and conversion of binary data into vel npy files")
 
         uvel = fromfile("generate-temp-u.data", ">f4")
         vvel = fromfile("generate-temp-v.data", ">f4")
 
         uvel = uvel.reshape(1440, 720)
         vvel = vvel.reshape(1440, 720)
-
-        print(uvel.shape)
-        print(vvel.shape)
 
         uvel = uvel.reshape(-1)
         vvel = vvel.reshape(-1)
@@ -49,4 +52,11 @@ class GeneratePhases:
         phases = np.array(values, dtype = np.float).reshape(720,1440)
         phases = np.nan_to_num(phases)
 
+
+        print("...Finished computing phase field.")
+
         return phases
+
+gen = GeneratePhases()
+out = gen.generate("0000189648", 10)
+pdb.set_trace()
