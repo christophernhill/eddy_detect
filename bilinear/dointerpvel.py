@@ -29,6 +29,9 @@ try:
 except IndexError:
     sys.exit(__doc__)
 
+import pdb
+pdb.set_trace()
+
 sfx = '_{0}x{0}'.format(r)
 csi = CSInterp.frombin('fij'+sfx, 'w'+sfx, ncs, dir=interpdir)
 

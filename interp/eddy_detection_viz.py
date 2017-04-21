@@ -5,60 +5,62 @@ import sys
 import math
 import matplotlib.pyplot as plt
 
+def detect_and_visualize(dataset):
+    classifier = pack_edML.EddyML()
 
-dataset = np.load(sys.argv[1])
+    print("Running data through classifier")
 
-classifier = pack_edML.EddyML()
+    eddy_centers, eddy_polarity, eddy_radius = classifier.classify(dataset)
 
-print("Running data through classifier")
+    plt.imshow(dataset, alpha=0.4)
 
-eddy_centers, eddy_polarity, eddy_radius = classifier.classify(dataset)
+    x = eddy_centers[:,0]
+    y = eddy_centers[:,1]
 
-plt.imshow(dataset, alpha=0.4)
+    colors = eddy_polarity
 
-x = eddy_centers[:,0]
-y = eddy_centers[:,1]
+    area = eddy_radius**2 * np.pi
 
-colors = eddy_polarity
+    eddy_info = np.hstack((x.reshape(-1, 1), y.reshape(-1,1), eddy_radius.reshape(-1,1)))
 
-area = eddy_radius**2 * np.pi
+    cyclonic_mask = eddy_polarity == 1
+    x_cyc = x[cyclonic_mask]
+    y_cyc = y[cyclonic_mask]
+    area_cyc = area[cyclonic_mask]
 
-eddy_info = np.hstack((x.reshape(-1, 1), y.reshape(-1,1), eddy_radius.reshape(-1,1)))
+    anti_mask = eddy_polarity == -1
+    x_anti = x[anti_mask]
+    y_anti = y[anti_mask]
+    area_anti = area[anti_mask]
 
-cyclonic_mask = eddy_polarity == 1
-x_cyc = x[cyclonic_mask]
-y_cyc = y[cyclonic_mask]
-area_cyc = area[cyclonic_mask]
-
-anti_mask = eddy_polarity == -1
-x_anti = x[anti_mask]
-y_anti = y[anti_mask]
-area_anti = area[anti_mask]
-
-# note coordinates being flipped
-# plot cyclonic eddy structures
-plt.scatter(y_cyc,x_cyc, s = area_cyc, marker='o', facecolor='none', edgecolor='white')
-plt.scatter(y_cyc,x_cyc, s= 20, marker='+')
+    # note coordinates being flipped
+    # plot cyclonic eddy structures
+    plt.scatter(y_cyc,x_cyc, s = area_cyc, marker='o', facecolor='none', edgecolor='white')
+    plt.scatter(y_cyc,x_cyc, s= 20, marker='+')
 
 
-# plot anti-cyclonic eddy structures
-plt.scatter(y_anti,x_anti, s = area_anti, marker='o', facecolor='none', edgecolor='black')
-plt.scatter(y_anti,x_anti, s= 20, marker='+')
+    # plot anti-cyclonic eddy structures
+    plt.scatter(y_anti,x_anti, s = area_anti, marker='o', facecolor='none', edgecolor='black')
+    plt.scatter(y_anti,x_anti, s= 20, marker='+')
 
-plt.legend(['cyclonic radii','cyclonic center', 'anticyclonic radii', 'anticyclonic center'], markerscale=0.1, fontsize = 6, frameon='false')
+    plt.legend(['cyclonic radii','cyclonic center', 'anticyclonic radii', 'anticyclonic center'], markerscale=0.1, fontsize = 6, frameon='false')
 
-plt.show(block=True)
+    plt.show(block=True)
 
-filename = sys.argv[1].split("/")[-1].split(".")[-2]
+    filename = sys.argv[1].split("/")[-1].split(".")[-2]
 
-plt.savefig("detection-test/png/{0}.png".format(filename))
-np.save("detection-test/npy/{0}.npy".format(filename), dataset)
-np.save("detection-test/eddy/{0}.npy".format(filename), eddy_info)
+    plt.savefig("detection-test/png/{0}.png".format(filename))
+    np.save("detection-test/npy/{0}.npy".format(filename), dataset)
+    np.save("detection-test/eddy/{0}.npy".format(filename), eddy_info)
 
 
-print("Saved image to detection-test/png/{0}.png".format(filename))
-print("Saved data to detection-test/npy/{0}.npy".format(filename))
-print("Saved classified eddy data to detection-test/eddy/{0}.npy".format(filename))
-plt.show(block="true")
+    print("Saved image to detection-test/png/{0}.png".format(filename))
+    print("Saved data to detection-test/npy/{0}.npy".format(filename))
+    print("Saved classified eddy data to detection-test/eddy/{0}.npy".format(filename))
+    plt.show(block="true")
+
+if __name__ == "__main__":
+    pdb.set_trace()
+    detect_and_visualize(np.load(sys.argv[1]))
 
 
