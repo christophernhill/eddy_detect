@@ -2,6 +2,9 @@
 
 import scipy.io as sio
 import numpy as np
+import os
+
+filedir = os.path.dirname(os.path.abspath(__file__))
 
 
 global f_width
@@ -14,7 +17,7 @@ samples =356		### hawaii training set
 
 def get_feature_label(phase_range):
 	if phase_range == 2:
-		dataset_2pi = sio.loadmat('hawaii_eddy_2pi.mat')		## hawaii_eddy_2pi.mat
+		dataset_2pi = sio.loadmat('{0}/hawaii_eddy_2pi.mat'.format(filedir))		## hawaii_eddy_2pi.mat
 		features_2pi = dataset_2pi['features_2pi']
 		features_2pi = features_2pi.reshape(f_width*f_height,samples)
 		features_2pi = np.transpose(features_2pi)

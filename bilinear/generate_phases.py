@@ -34,27 +34,46 @@ class GeneratePhases:
 
 
         cmds = []
+        # average top layers of UVEL data
         cmds.append("python {2}/preprocess-ecco-data.py {1}/UVELMASS/day.{0}.data ./avgUVEL-day.{0}.npy".format(day, self.offline_path, self.filedir))
         subprocess.call(cmds.pop(), shell = True)
         logging.debug("Finished averaging UVEL")
+
+        # average top layers of VVEL data
         cmds.append("python {2}/preprocess-ecco-data.py {1}/VVELMASS/day.{0}.data ./avgVVEL-day.{0}.npy".format(day, self.offline_path, self.filedir))
         subprocess.call(cmds.pop(), shell = True)
         logging.debug("Finished averaging VVEL")
+
+        # convert UVEL and VVEL data to 1440x720 grid
         cmds.append("python {1}/dorotateuv.py ./avgUVEL-day.{0}.npy ./avgVVEL-day.{0}.npy ./UE.{0}.data ./VN.{0}.data".format(day, self.filedir))
         subprocess.call(cmds.pop(), shell = True)
         logging.debug("Finished dorotateuv.py")
-        cmds.append("{1}/dointerpvel.py ./interp/ll4x4invconf 4 ./UE.{0}.data ./generate-temp-u.data".format(day, self.filedir))
+
+        cmds.append("{1}/dointerpvel.py {1}/interp/ll4x4invconf 4 ./UE.{0}.data ./generate-temp-u.data".format(day, self.filedir))
         subprocess.call(cmds.pop(), shell = True)
         logging.debug("Finished dointerpvel for UVEL")
-        cmds.append("{1}/dointerpvel.py ./interp/ll4x4invconf 4 ./VN.{0}.data ./generate-temp-v.data".format(day, self.filedir))
+
+        cmds.append("{1}/dointerpvel.py {1}/interp/ll4x4invconf 4 ./VN.{0}.data ./generate-temp-v.data".format(day, self.filedir))
         subprocess.call(cmds.pop(), shell = True)
         logging.debug("Finished dointerpvel for VVEL")
+
+        # get ETAN data and convert to 1440x720 grid
+        etn = np.fromfile("{1}/ETAN/day.{0}.data".format(day, self.offline_path), ">f4")
+        np.save("etan.day.{0}.npy".format(day), etn)
+        logging.debug("Converted ETAN to npy")
+        dorotateuv_cmd = "python {1}/dorotateuv.py etan.day.{0}.npy etan.day.{0}.npy etan-done.{0}.data etan-done.data".format(day, self.filedir)
+        subprocess.call(dorotateuv_cmd, shell = True)
+        dointerpvel_cmd ="python {1}/dointerpvel.py {1}/interp/ll4x4invconf 4 ./etan-done.{0}.data ./etan-done.{0}.data".format(day, self.filedir)
+        subprocess.call(dointerpvel_cmd, shell = True)
+        etn = np.fromfile("./etan-done.{0}.data".format(day), ">f4")
+        etn = etn.reshape(720, 1440)
+        logging.debug("Converted ETAN to 1440x720")
 
         #for cmd in cmds:
         # Note on subprocess.call usage: set shell = True, to allow for expansion of '.' to working directory
         #    subprocess.call(cmd, shell=True)
 
-        logging.info("...Finished bilinear interpolation and conversion of binary data into vel npy files")
+        logging.info("...Finished bilinear interpolation and conversion of binary data into vel npy files (and ETAN)")
 
         uvel = fromfile("./generate-temp-u.data", ">f4")
         vvel = fromfile("./generate-temp-v.data", ">f4")
@@ -76,7 +95,7 @@ class GeneratePhases:
 
         logging.info("...Finished computing phase field.")
 
-        return phases
+        return (phases, etn)
 
 if __name__ == "__main__":
     import logging

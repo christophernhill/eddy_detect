@@ -1,39 +1,49 @@
 #!/usr/bin/env python
 """
 Usage: 
-    ./detect.py <day> <xwidth> <ywidth> <x> <y> 
+    ./detect.py <day> <lat> <long> <latwidth> <longwidth>
 <day> simulation day of interest
-<x> x location of patch to run eddy detection on
-<y> y location of path to run eddy detection on
-<xwidth> x width of patch
-<ywidth> y width of patch
+<lat> latitude location of patch to run eddy detection on (pos = N, neg = S)
+<long> longtitude location of path to run eddy detection on (pos = E, neg = W)
+<latwidth> longitudinal (in degrees) width of patch
+<longwidth> latitudinal (in degrees) width of patch
 
 Runs eddy detection on a given patch of velocity data from a simulation day
 """
 
 import sys
 import pdb
+import numpy as np
 sys.path.insert(0, '../')
 from bilinear.generate_phases import GeneratePhases
 from interp.data_interp import Interpolation
 from interp.eddy_detection_viz import detect_and_visualize
 
-def from_lat_lng(lat, lng):
-    x = float(lat)*4 + 360
-    y = -float(lng)*4 + 720
-    return (x,y)
+"""
+Takes lat lng coordinates (lat: [-90, 90], lng: [-180,180]) and converts to 
+the coordinate system used in the phase data. This is a 720x1440 grid, where each pixel is a 
+1/4 degree x 1/4 degree, and 0N, 0E is at (360,720)
 
-def detect(day, x, y, xwidth, ywidth):
-    logging.debug("entered #detect() with day = {0}".format(day))
+@param lat: latitude in degrees 
+@param lng: longtitude in degrees
+@returns: tuple of (x1, x2) coordinates
+"""
+def from_lat_lng(lat, lng):
+    x1 = float(lat)*4 + 360
+    x2 = float(lng)*4 + 720
+    return (x1,x2)
+
+def detect(day, lat, lng, latwidth, lngwidth):
+    logging.debug("entered #detect() with day = {0}, x1={1}, x2={2}, x1width={3}, x2width={4}".format(day, lat, lng, latwidth, lngwidth))
     logging.debug("converting lat lng to grid coordinates")
 
+
     #latlng stuff
-    x,y = from_lat_lng(x,y)
-    xwidth = int(xwidth)
-    ywidth = int(ywidth)
-    xwidth *= 4
-    ywidth *= 4
-    pdb.set_trace()
+    x1,x2 = from_lat_lng(lat,lng)
+    x1width = int(latwidth)
+    x2width = int(lngwidth)
+    x1width *= 4
+    x2width *= 4
 
     # Run generate_phases.py on the given day to get a .npy array of the phases
     gen = GeneratePhases()
@@ -41,11 +51,9 @@ def detect(day, x, y, xwidth, ywidth):
 
     # Run data-interp.py on the phase npy file (and over the given patch) to interpolate the phase data to a higher resolution
     interp = Interpolation()
-    # TODO: edit data_interp.py so that it doesn't throw away the first element in the parameter array
     interpolation_factor = 2
-    parameters = ["placeholder",xwidth, ywidth, x, y, interpolation_factor]
-    pdb.set_trace()
-    phases_interp = interp.interpolate(parameters, phases)
+    parameters = [x1width, x2width, x1, x2, interpolation_factor]
+    phases_interp = interp.interpolate(parameters, phases, debug=True)
     etn_interp = interp.interpolate(parameters, etn)
 
     # Run eddy_detection_viz.py on the interpolated phase npy file to identify any eddies
@@ -61,16 +69,17 @@ if __name__ == '__main__':
     logging.info("Started detect.py")
     try:
         day = sys.argv.pop(1)
-        x =  sys.argv.pop(1)
-        y =  sys.argv.pop(1)
-        xwidth =  sys.argv.pop(1)
-        ywidth =  sys.argv.pop(1)
+        x1 =  sys.argv.pop(1)
+        x2 =  sys.argv.pop(1)
+        x1width =  sys.argv.pop(1)
+        x2width =  sys.argv.pop(1)
     except IndexError:
+        sys.exit(__doc__)
         day = "0000231552" # leading zeros are needed for filename resolution 
-        x = 50
-        y = 50
-        xwidth = 100
-        ywidth = 100
+        x1 = 50
+        x2 = 50
+        x1width = 100
+        x2width = 100
 
-    detect(day, x, y, xwidth, ywidth)
+    detect(day, x1, x2, x1width, x2width)
 

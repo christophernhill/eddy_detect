@@ -21,7 +21,9 @@ from scipy import stats
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import pickle
 import pdb
+import os
 
+filedir = os.path.dirname(os.path.abspath(__file__))
 
 def border_indices(center_i, center_j, polarity, r):
     x = np.array([])
@@ -197,8 +199,8 @@ class EddyML:
 ##########################  Classifiers  ##########################
 # use the helper functions in the train_model.py file to train and validate and evaluate
 # load trained classifieres
-        clf = pickle.load(open('clf_core.pck', 'rb'))
-        clf_polarity = pickle.load(open('clf_pol.pck', 'rb'))
+        clf = pickle.load(open('{0}/clf_core.pck'.format(filedir), 'rb'))
+        clf_polarity = pickle.load(open('{0}/clf_pol.pck'.format(filedir), 'rb'))
 
 
 ######################  Load Vphase Snapshot  ######################
