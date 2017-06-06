@@ -18,6 +18,7 @@ sys.path.insert(0, '../')
 from bilinear.generate_phases import GeneratePhases
 from interp.data_interp import Interpolation
 from interp.eddy_detection_viz import detect_and_visualize
+import logging
 
 """  Constants and other script settings  """
 # Denotes how much to increase the resolution from the quarter degree resolution per pixel 
@@ -29,6 +30,7 @@ INTERPOLATION_FACTOR = 20
 # is transformed along the pipeline. Setting this to true will cause pyplot plots to be plotted that block script execution,
 # so unless you're testing something, want to see how the data is transformed, or something else, you probably want this to be False.
 DEBUG_FLAG = True
+LOG_LEVEL = logging.DEBUG
 
 
 """
@@ -56,6 +58,7 @@ Identifies any eddies in a window over the phase data for the given day (where d
 @param lngwidth: longitudinal width in degrees of the window
 
 @returns: 3-tuple of: array of eddy center locations, array of eddy polarities, eddy radii
+          Units for these values will be in degrees.
 
 """
 def detect(day, lat, lng, latwidth, lngwidth):
@@ -94,6 +97,7 @@ def detect(day, lat, lng, latwidth, lngwidth):
     # and modifications to make it an importable Python module. 
     # Apologies for the messy way that was jammed into the pipeline here - if there is a change to Mohammad's thing, you 
     # should still pretty easily be able to update the version here
+    parameters.append(day)
     eddy_centers, eddy_polarity, eddy_radius = detect_and_visualize(phases_interp['cubic'], etn_interp, parameters, False)
 
     # The returned eddy metrics are given in the units of the interpolated data, so we need to convert it back to quarter degrees
@@ -104,8 +108,7 @@ def detect(day, lat, lng, latwidth, lngwidth):
     return eddy_centers, eddy_polarity, eddy_radius
 
 if __name__ == '__main__':
-    import logging
-    logging.getLogger().setLevel(logging.DEBUG)
+    logging.getLogger().setLevel(LOG_LEVEL)
     logging.info("Started detect.py")
     try:
         day = sys.argv.pop(1)

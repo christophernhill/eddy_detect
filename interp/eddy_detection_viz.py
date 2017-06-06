@@ -2,15 +2,28 @@ import numpy as np
 import pack_edML
 import sys
 import math
+import pdb
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tick
 
+"""
+Detects and if set, visualizes eddies in a phase field
+
+@param dataset: 2D np array of phases to check
+@param etn: 2D np array of ssh, currently not used
+@param params: parameters about patch dimensions and scaling factor - given in case they are needed for calculations
+@param debug: whether to show blocking pyplot graphs of the output and to write data to disk
+@returns: tuple of lists of eddy centers, polarities, and radii
+"""
 def detect_and_visualize(dataset, etn, params, debug=False):
     classifier = pack_edML.EddyML()
 
     print("Running data through classifier")
 
+    # Use edML to get the eddy metrics
     eddy_centers, eddy_polarity, eddy_radius = classifier.classify(dataset)
+
+    # The rest of this is all just plotting
 
     # clean up any previous pyplot windows
     plt.close('all')
@@ -18,6 +31,7 @@ def detect_and_visualize(dataset, etn, params, debug=False):
     ax = phase_fig.add_subplot(111)
     phase_fig.suptitle("Phases and detected eddies")
 
+    # plot the base dataset
     ax.imshow(dataset, alpha=0.4)
 
     x = eddy_centers[:,0]
@@ -41,7 +55,7 @@ def detect_and_visualize(dataset, etn, params, debug=False):
 
     # custom formatter for latlng
     def lat_formatter(x,p):
-        degrees = abs(x/(4*params[-1]) -90) + params[1]
+        degrees = abs(x/(4*params[4]) -90) + params[1]
         if x > 360:
             return "{0} N".format(degrees)
         elif x < 360:
@@ -49,7 +63,7 @@ def detect_and_visualize(dataset, etn, params, debug=False):
         else:
             return "0"
     def lng_formatter(x,p):
-        degrees = abs(x/(4*params[-1]) -90) + params[2]
+        degrees = abs(x/(4*params[4]) -90) + params[2]
         if x > 720:
             return "{0} E".format(degrees)
         elif x < 720:
@@ -57,6 +71,7 @@ def detect_and_visualize(dataset, etn, params, debug=False):
         else:
             return "0"
 
+    # set the axis to be in latlng
     ax.yaxis.set_major_formatter(tick.FuncFormatter(lat_formatter))
     ax.xaxis.set_major_formatter(tick.FuncFormatter(lng_formatter))
 
@@ -64,7 +79,6 @@ def detect_and_visualize(dataset, etn, params, debug=False):
     # plot cyclonic eddy structures
     ax.scatter(y_cyc,x_cyc, s = area_cyc, marker='o', facecolor='none', edgecolor='white')
     ax.scatter(y_cyc,x_cyc, s= 20, marker='+')
-
 
     # plot anti-cyclonic eddy structures
     ax.scatter(y_anti,x_anti, s = area_anti, marker='o', facecolor='none', edgecolor='black')
@@ -77,18 +91,19 @@ def detect_and_visualize(dataset, etn, params, debug=False):
     #figure_ETA.suptitle("ETA Values")
     #plt.imshow(etn)
 
-    if debug: plt.show(block=True)
+    if True:
+        plt.show(block=True)
+        filename = params[5]
+        pdb.set_trace()
 
-    #filename = sys.argv[1].split("/")[-1].split(".")[-2]
-
-    #plt.savefig("detection-test/png/{0}.png".format(filename))
-    #np.save("detection-test/npy/{0}.npy".format(filename), dataset)
-    #np.save("detection-test/eddy/{0}.npy".format(filename), eddy_info)
+        plt.savefig("detection-test/png/{0}.png".format(filename))
+        np.save("detection-test/npy/{0}.npy".format(filename), dataset)
+        np.save("detection-test/eddy/{0}.npy".format(filename), eddy_info)
 
 
-    #print("Saved image to detection-test/png/{0}.png".format(filename))
-    #print("Saved data to detection-test/npy/{0}.npy".format(filename))
-    #print("Saved classified eddy data to detection-test/eddy/{0}.npy".format(filename))
+        print("Saved image to detection-test/png/{0}.png".format(filename))
+        print("Saved data to detection-test/npy/{0}.npy".format(filename))
+        print("Saved classified eddy data to detection-test/eddy/{0}.npy".format(filename))
 
     return (eddy_centers, eddy_polarity, eddy_radius)
 

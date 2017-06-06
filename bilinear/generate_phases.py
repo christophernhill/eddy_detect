@@ -8,12 +8,19 @@ import logging
 
 class GeneratePhases:
 
-    # working directory of the file, used to nail down relative file paths so that they 
+    # Pulls down the  working directory of the file, used to nail down relative file paths so that they 
     # are relative to the location of generate_phases.py
     filedir = os.path.dirname(os.path.abspath(__file__))
     offline_path = os.path.join(filedir, "../interp/offline")
     logging.debug("offline_path: {0}".format(offline_path))
 
+    """
+    Converts a u-vel and v-vel into a phase (radians) value
+
+    @param u: velocity in u direction
+    @param v: velocity in v direction
+    @return phase: corresponding phase value
+    """
     def convert_phase(self, u, v):
         if u > 0 and v >= 0:
             return math.atan(v/u)
@@ -25,9 +32,16 @@ class GeneratePhases:
             return math.pi*3/2
         elif u < 0:
             return math.atan(v/u) + math.pi
+
+    """
+    Generates phase data by averaging the top layers of a day's velocity data
+
+    @param day: the day to generate phase data for
+    @param layers: the number of top layers to average over
+    @return: 2D np array with phase values
+    """
     def generate(self, day, layers):
         logging.debug("Entered GeneratePhases#generate() with day = {0}, layers = {1}".format(day, layers))
-        # get the UVELMASS and VVELMASS files and convert them using Oliver's methods
         logging.debug("offline_path: {0}".format(self.offline_path))
         logging.debug("Current working directory: {0}".format(os.getcwd()))
         logging.debug("generate_phases.py directory: {0}".format(self.filedir))
@@ -69,27 +83,24 @@ class GeneratePhases:
         etn = etn.reshape(720, 1440)
         logging.debug("Converted ETAN to 1440x720")
 
-        #for cmd in cmds:
-        # Note on subprocess.call usage: set shell = True, to allow for expansion of '.' to working directory
-        #    subprocess.call(cmd, shell=True)
-
         logging.info("...Finished bilinear interpolation and conversion of binary data into vel npy files (and ETAN)")
 
+        # Pull in the velocity fields we just processed above
         uvel = fromfile("./generate-temp-u.data", ">f4")
         vvel = fromfile("./generate-temp-v.data", ">f4")
 
-        uvel = uvel.reshape(1440, 720)
-        vvel = vvel.reshape(1440, 720)
-
+        # Reshaping into 1d so we can easily iterate through
         uvel = uvel.reshape(-1)
         vvel = vvel.reshape(-1)
 
+        # Calculating phases from two sets of velocities
         phases = np.array([])
         values = []
         for i in range(len(uvel)):
             val = self.convert_phase(uvel[i], vvel[i])
             values.append(val)
 
+        # Formatting phase data
         phases = np.array(values, dtype = np.float).reshape(720,1440)
         phases = np.nan_to_num(phases)
 

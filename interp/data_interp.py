@@ -6,9 +6,12 @@ import sys
 import logging
 
 class Interpolation:
-    # takes a numpy array and pads with 0's to make the dimensions square
-    # @returns: tuple of the padded array, and the (x,y) pair representing the adjustment
-    # to coordinates on the original array
+    """
+    Takes a numpy array and pads with 0's to make the dimensions square
+
+    @returns: tuple of the padded array, and the (x,y) pair representing the adjustment
+    to coordinates on the original array
+    """ 
     def pad_to_square(self, arr):
       # width = arr.shape[0], height = arr.shape[1]
       diff = arr.shape[0] - arr.shape[1]
@@ -25,8 +28,11 @@ class Interpolation:
         shift = (0,pad_cols)
       return (arr, shift)
 
-    # NOTE: This takes y as the first parameter and x as the second
-    # Returns DEGREE values
+    """
+    This takes y as the first parameter and x as the second, calculates phase
+
+    @returns: DEGREE values
+    """
     def convert_phase(self, v, u):
       if u > 0 and v >= 0:
           return degrees(math.atan(v/u))
@@ -39,9 +45,15 @@ class Interpolation:
       elif u < 0:
          return degrees(math.atan(v/u) + math.pi)
 
-    # convert radians to degrees
+    """
+    Convert radians to degrres
+
+    @param radians: radians to convert
+    @returns: degree value
+    """
     def degrees(self, radians):
       return (radians * 360 / (math.pi * 2)) % 360
+
     """
     Interpolates on a patch of a given 2D float array
 
@@ -61,7 +73,7 @@ class Interpolation:
           # must be float to avoid integer division later
           scaling_factor = float(parameters[4])
 
-        print("""
+        logging.debug("""
         =============
         Running with:
         lat_dim = {0}
@@ -71,44 +83,32 @@ class Interpolation:
         scaling_factor = {4}
         ============""".format(lat_dim, lng_dim, lat, lng, scaling_factor))
 
-        ## NOTE: some thing in the interpolation flips the axises between final-phases.npy and the output inteprolated data
-        ## so this has to be done to make the coordinate systems match up
-        #lat_dim, lng_dim = (lng_dim, lat_dim)
-        #lat, lng = (lng, lat)
-
-
-        #print("""
-        #=============
-        #Running with:
-        #lat_dim = {0}
-        #lng_dim = {1}
-        #lat = {2}
-        #lng = {3}
-        #scaling_factor = {4}
-        #============""".format(lat_dim, lng_dim, lat, lng, scaling_factor))
-
-        # full data set 
+        # full data set
         phases_in = phases
 
-        # full data set padded to be a square matrix
+        # full data set padded to be a square matrix - this is important, because for some reason,
+        # the interpolation function breaks when given non-square matrices
         phases_in, shift  = self.pad_to_square(phases_in)
 
-        # I am 50% sure this is the correct assignment
+        # Update coordinates as needed after padding
         lat += shift[0]
         lng += shift[1]
 
-        # interpolate on just a window of the total dataset
+        # Interpolate on just a window of the total dataset
         phases = phases_in[lat:lat+lat_dim,lng:lng+lng_dim]
         print("{0}, {1}, {2}, {3}".format(lat, lng, lat_dim, lng_dim))
-        figure0 = plt.figure(0)
-        figure0.suptitle("Original")
-        plt.imshow(phases_in, origin='lower')
-        figure1 = plt.figure(1)
-        figure1.suptitle("Patch")
-        plt.imshow(phases, origin='lower')
 
-        if debug: plt.show()
+        if debug:
+            figure0 = plt.figure(0)
+            figure0.suptitle("Original")
+            plt.imshow(phases_in, origin='lower')
+            figure1 = plt.figure(1)
+            figure1.suptitle("Patch")
+            plt.imshow(phases, origin='lower')
+            plt.show()
 
+
+        # INTERPOLATION
         # Now, instead of interpolating on the phases, split the phases into componenets and interpolate on these
         phase_x = cos(phases)
         phase_y = sin(phases)
@@ -148,23 +148,25 @@ class Interpolation:
         phases_interp = {}
 
         # display the original data for reference
-        figure_orig = plt.figure(0)
-        figure_orig.suptitle("Original")
-        plt.imshow(phases, interpolation="none")
-        plt.colorbar()
+        if debug:
+            figure_orig = plt.figure(0)
+            figure_orig.suptitle("Original")
+            plt.imshow(phases, interpolation="none")
+            plt.colorbar()
 
         for i, method in enumerate(('nearest', 'linear', 'cubic')):
           phases_interp[method] = phase_conversion_vectorized(y_interp[method], x_interp[method])
 
-          #display data and write to files
-          figure_method = plt.figure(1+i)
-          figure_method.suptitle(method)
-          plt.imshow(phases_interp[method], interpolation="none")
-          plt.colorbar()
-          plt.savefig("{0}x{1}-{2}.png".format(int(lat_dim*scaling_factor), int(lng_dim*scaling_factor), method))
-          save("{0}x{1}-{2}.npy".format(int(lat_dim*scaling_factor), int(lng_dim*scaling_factor), method), phases_interp[method])
-          print("Saved {0}x{1}-{2}.png".format(int(lat_dim*scaling_factor), int(lng_dim*scaling_factor),method)) 
-          print("Saved {0}x{1}-{2}.npy".format(int(lat_dim*scaling_factor), int(lng_dim*scaling_factor),method)) 
+          # If Debug flag - display data and write to files
+          if debug:
+              figure_method = plt.figure(1+i)
+              figure_method.suptitle(method)
+              plt.imshow(phases_interp[method], interpolation="none")
+              plt.colorbar()
+              plt.savefig("{0}x{1}-{2}.png".format(int(lat_dim*scaling_factor), int(lng_dim*scaling_factor), method))
+              save("{0}x{1}-{2}.npy".format(int(lat_dim*scaling_factor), int(lng_dim*scaling_factor), method), phases_interp[method])
+              print("Saved {0}x{1}-{2}.png".format(int(lat_dim*scaling_factor), int(lng_dim*scaling_factor),method)) 
+              print("Saved {0}x{1}-{2}.npy".format(int(lat_dim*scaling_factor), int(lng_dim*scaling_factor),method)) 
 
 
         # only display blocking plot (meaning script execution will pause until pyplot windows are manually closed) if debug flag is set
@@ -172,8 +174,6 @@ class Interpolation:
             logging.debug("Displaying plots of interpolated data")
             plt.show()
 
-        # cleanup any remaining pyplot windows
-        #plt.close('all')
         return phases_interp
 
 if __name__ == "__main__":
