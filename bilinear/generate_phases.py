@@ -11,7 +11,7 @@ class GeneratePhases:
     # Pulls down the  working directory of the file, used to nail down relative file paths so that they 
     # are relative to the location of generate_phases.py
     filedir = os.path.dirname(os.path.abspath(__file__))
-    offline_path = os.path.join(filedir, "../interp/offline")
+    offline_path = os.path.join(filedir, "../../../eddy_detect/interp/offline")
     logging.debug("offline_path: {0}".format(offline_path))
 
     """

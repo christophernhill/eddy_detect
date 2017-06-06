@@ -116,12 +116,7 @@ if __name__ == '__main__':
         x1width =  sys.argv.pop(1)
         x2width =  sys.argv.pop(1)
     except IndexError:
-        #sys.exit(__doc__)
-        day = "0000231552" # leading zeros are needed for filename resolution 
-        x1 = 50
-        x2 = 50
-        x1width = 100
-        x2width = 100
+        sys.exit(__doc__)
 
     detect(day, x1, x2, x1width, x2width)
 
