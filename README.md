@@ -9,11 +9,11 @@ UVEL and VVEL dataset.
 You want to run the detect(...) method in binary_to_eddy/detect.py. This
 is a module, so you can use:
 
-  from binary_to_eddy.detect import detect
+  <code> from binary_to_eddy.detect import detect </code>
   
 and then execute the function simply as:
 
-  detect(...)
+  <code> detect(day,  lat, lng, latwidth, lngwidth) </code>
 
 This exact same thing is done in test.py, and was verified to work.
 
@@ -25,11 +25,11 @@ degree.
 
 2. Velocity data is preprocessed a bit (currently this is implemented as
    averaging the top 10 layers) and then phases are calculated from the
-2D velocity vecotrs.
+  2D velocity vecotrs.
 
 3. Since Mohammad's edML classifier expects higher resolution than the
    quarter degree resolution we have, we run it through an interpolation
-class. The current scaling factor is 20x.
+  class. The current scaling factor is 20x.
 
 4. We then feed the scaled up phase data into Mohammad's classifer and
    return the results.
