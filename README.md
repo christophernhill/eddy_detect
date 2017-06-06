@@ -54,5 +54,9 @@ Root
 resolution) and what Mohammad's edML classifer expects. Whether you
 revisit this, tweak it, or not - it's probably a good thing to keep in
 mind.
+- I tried to make any filepaths relative and relatively robust, but I
+  think some things might break if you start calling things from other
+places. The fixes should be pretty obvious and easy, but let me know if
+anything annoying happens.
 
 

@@ -101,7 +101,6 @@ def detect(day, lat, lng, latwidth, lngwidth):
     eddy_centers, eddy_polarity, eddy_radius = detect_and_visualize(phases_interp['cubic'], etn_interp, parameters, False)
 
     # The returned eddy metrics are given in the units of the interpolated data, so we need to convert it back to quarter degrees
-    pdb.set_trace()
     eddy_centers /= (INTERPOLATION_FACTOR * 4)
     eddy_radius /= (INTERPOLATION_FACTOR * 4)
 

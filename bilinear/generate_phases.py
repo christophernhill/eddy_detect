@@ -113,4 +113,3 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
     gen = GeneratePhases()
     out = gen.generate("0000189648", 10)
-    pdb.set_trace()

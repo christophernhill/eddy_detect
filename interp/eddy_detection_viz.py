@@ -94,7 +94,6 @@ def detect_and_visualize(dataset, etn, params, debug=False):
     if True:
         plt.show(block=True)
         filename = params[5]
-        pdb.set_trace()
 
         plt.savefig("detection-test/png/{0}.png".format(filename))
         np.save("detection-test/npy/{0}.npy".format(filename), dataset)
