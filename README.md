@@ -17,6 +17,16 @@ and then execute the function simply as:
 
 This exact same thing is done in test.py, and was verified to work.
 
+Also, you will need to change the 'offline' filepath located in /bilinear/generate_phases.py.
+This gives the location to a folder that should contain the raw ECCO data flies of interest.
+
+The script expects the folder to have 3 subfolders: ETAN, UVELMASS, and VVELMASS. ETAN should
+hold the sea surface height data, and the other two should have the velocity data (2D).
+
+The files in each should be formatted according to "day.<10 digit day code>.data". Ex:
+"day.0000253155.data". 
+
+
 ## The Pipeline
 1. Uses Oliver's interpolation scripts (/bilinear) to convert the ECCO
 datasets from their original cube-sphere format to a rectangular grid
