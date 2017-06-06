@@ -19,6 +19,8 @@ from bilinear.generate_phases import GeneratePhases
 from interp.data_interp import Interpolation
 from interp.eddy_detection_viz import detect_and_visualize
 
+INTERPOLATION_FACTOR = 20
+
 """
 Takes lat lng coordinates (lat: [-90, 90], lng: [-180,180]) and converts to 
 the coordinate system used in the phase data. This is a 720x1440 grid, where each pixel is a 
@@ -38,7 +40,7 @@ def detect(day, lat, lng, latwidth, lngwidth):
     logging.debug("converting lat lng to grid coordinates")
 
 
-    #latlng stuff
+    # Convert input values (in lat/lng) into those used for the phase data
     x1,x2 = from_lat_lng(lat,lng)
     x1width = int(latwidth)
     x2width = int(lngwidth)
@@ -51,17 +53,17 @@ def detect(day, lat, lng, latwidth, lngwidth):
 
     # Run data-interp.py on the phase npy file (and over the given patch) to interpolate the phase data to a higher resolution
     interp = Interpolation()
-    interpolation_factor = 2
-    parameters = [x1width, x2width, x1, x2, interpolation_factor]
-    phases_interp = interp.interpolate(parameters, phases, debug=True)
+    parameters = [x1width, x2width, x1, x2, INTERPOLATION_FACTOR]
+    phases_interp = interp.interpolate(parameters, phases, debug=False)
     etn_interp = interp.interpolate(parameters, etn)
 
     # Run eddy_detection_viz.py on the interpolated phase npy file to identify any eddies
-    detect_and_visualize(phases_interp['cubic'], etn_interp, parameters)
+    eddy_centers, eddy_polarity, eddy_radius = detect_and_visualize(phases_interp['cubic'], etn_interp, parameters, False)
 
+    pdb.set_trace()
 
     # Display and output the eddy detection results (perhaps pull some of this out of eddy_detection_viz.py
-    return None
+    return eddy_centers, eddy_polarity, eddy_radius
 
 if __name__ == '__main__':
     import logging
@@ -74,7 +76,7 @@ if __name__ == '__main__':
         x1width =  sys.argv.pop(1)
         x2width =  sys.argv.pop(1)
     except IndexError:
-        sys.exit(__doc__)
+        #sys.exit(__doc__)
         day = "0000231552" # leading zeros are needed for filename resolution 
         x1 = 50
         x2 = 50

@@ -1,4 +1,3 @@
-import pdb
 import numpy as np
 import pack_edML
 import sys
@@ -6,14 +5,15 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tick
 
-def detect_and_visualize(dataset, etn, params):
+def detect_and_visualize(dataset, etn, params, debug=False):
     classifier = pack_edML.EddyML()
 
     print("Running data through classifier")
 
     eddy_centers, eddy_polarity, eddy_radius = classifier.classify(dataset)
-    pdb.set_trace()
 
+    # clean up any previous pyplot windows
+    plt.close('all')
     phase_fig = plt.figure(0)
     ax = phase_fig.add_subplot(111)
     phase_fig.suptitle("Phases and detected eddies")
@@ -72,28 +72,27 @@ def detect_and_visualize(dataset, etn, params):
 
     ax.legend(['cyclonic radii','cyclonic center', 'anticyclonic radii', 'anticyclonic center'], markerscale=0.1, fontsize = 6, frameon='false')
 
-
     # display the ETA values on a separate plot
     #figure_ETA = plt.figure(1)
     #figure_ETA.suptitle("ETA Values")
     #plt.imshow(etn)
 
-    plt.show(block=True)
+    if debug: plt.show(block=True)
 
-    filename = sys.argv[1].split("/")[-1].split(".")[-2]
+    #filename = sys.argv[1].split("/")[-1].split(".")[-2]
 
-    plt.savefig("detection-test/png/{0}.png".format(filename))
-    np.save("detection-test/npy/{0}.npy".format(filename), dataset)
-    np.save("detection-test/eddy/{0}.npy".format(filename), eddy_info)
+    #plt.savefig("detection-test/png/{0}.png".format(filename))
+    #np.save("detection-test/npy/{0}.npy".format(filename), dataset)
+    #np.save("detection-test/eddy/{0}.npy".format(filename), eddy_info)
 
 
-    print("Saved image to detection-test/png/{0}.png".format(filename))
-    print("Saved data to detection-test/npy/{0}.npy".format(filename))
-    print("Saved classified eddy data to detection-test/eddy/{0}.npy".format(filename))
-    plt.show(block="true")
+    #print("Saved image to detection-test/png/{0}.png".format(filename))
+    #print("Saved data to detection-test/npy/{0}.npy".format(filename))
+    #print("Saved classified eddy data to detection-test/eddy/{0}.npy".format(filename))
+
+    return (eddy_centers, eddy_polarity, eddy_radius)
 
 if __name__ == "__main__":
-    pdb.set_trace()
     detect_and_visualize(np.load(sys.argv[1]))
 
 

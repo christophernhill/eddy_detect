@@ -106,7 +106,8 @@ class Interpolation:
         figure1 = plt.figure(1)
         figure1.suptitle("Patch")
         plt.imshow(phases, origin='lower')
-        plt.show()
+
+        if debug: plt.show()
 
         # Now, instead of interpolating on the phases, split the phases into componenets and interpolate on these
         phase_x = cos(phases)
@@ -165,10 +166,14 @@ class Interpolation:
           print("Saved {0}x{1}-{2}.png".format(int(lat_dim*scaling_factor), int(lng_dim*scaling_factor),method)) 
           print("Saved {0}x{1}-{2}.npy".format(int(lat_dim*scaling_factor), int(lng_dim*scaling_factor),method)) 
 
-        logging.debug("Displaying plots of interpolated data")
 
         # only display blocking plot (meaning script execution will pause until pyplot windows are manually closed) if debug flag is set
-        if debug: plt.show()
+        if debug:
+            logging.debug("Displaying plots of interpolated data")
+            plt.show()
+
+        # cleanup any remaining pyplot windows
+        #plt.close('all')
         return phases_interp
 
 if __name__ == "__main__":
