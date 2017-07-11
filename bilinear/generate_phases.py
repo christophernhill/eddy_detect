@@ -13,7 +13,8 @@ class GeneratePhases:
     filedir = os.path.dirname(os.path.abspath(__file__))
 
     # TODO: Change this if using different location for ECCO data
-    offline_path = os.path.join(filedir, "../../../eddy_detect/interp/offline")
+    # offline_path = os.path.join(filedir, "../../../eddy_detect/interp/offline")
+    offline_path = os.path.join(filedir, "/nfs/micklab004/jahn/ecco2/cube92/offline/EmPmR")
     logging.debug("offline_path: {0}".format(offline_path))
 
     """

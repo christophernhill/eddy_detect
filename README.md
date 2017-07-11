@@ -16,6 +16,15 @@ and then execute the function simply as:
   <code> detect(day,  lat, lng, latwidth, lngwidth) </code>
 
 This exact same thing is done in test.py, and was verified to work.
+```
+from binary_to_eddy import detect
+dayString="0000231552"
+lat=20 
+lng=170
+latwidth=10
+lngwidth=10
+detect(dayString, lat, lng, latwidth, lngwidth)
+```
 
 Also, you will need to change the 'offline' filepath located in /bilinear/generate_phases.py.
 This gives the location to a folder that should contain the raw ECCO data flies of interest.
