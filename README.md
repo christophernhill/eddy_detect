@@ -35,7 +35,7 @@ and then execute the function simply as:
 This exact same thing is done in test.py, and was verified to work e.g.
 ```
 $ cat test.py 
-from binary_to_eddy import detect
+from binary_to_eddy.detect import detect
 dayString="0000231552"
 lat=20 
 lng=170
