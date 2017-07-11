@@ -46,6 +46,7 @@ detect(dayString, lat, lng, latwidth, lngwidth)
 
 ```
 $ module load python
+$ source venv/bin/activate
 $ python test.py
 ```
 
