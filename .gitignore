@@ -1,6 +1,7 @@
 # ignore large mat lab files
 *.mat
 *.pyc
+venv
 
 # ignore specific large numpy arrays
 interped-data.npy
