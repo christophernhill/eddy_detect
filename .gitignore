@@ -2,6 +2,9 @@
 *.mat
 *.pyc
 venv
+*.data
+*.npy
+*.bin
 
 # ignore specific large numpy arrays
 interped-data.npy

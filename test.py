@@ -1,4 +1,4 @@
-from binary_to_eddy import detect
+from binary_to_eddy.detect import detect
 dayString="0000231552"
 lat=20 
 lng=170
