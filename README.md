@@ -5,6 +5,23 @@ Detecting eddies in MITgcm
 Provides a pipeline for easily extracting eddy information from an ECCO
 UVEL and VVEL dataset.
 
+## One time setup
+```
+git clone git@github.com:christophernhill/eddy_detect.git
+cd eddy_detect
+git checkout interpolation
+module load python
+virtualenv venv
+source venv/bin/activate
+pip install sklearn
+pip install numpy
+pip install pylab
+pip install matplotlib
+pip install scipy
+pip install h5py
+```
+
+
 ## How to Run It
 You want to run the detect(...) method in binary_to_eddy/detect.py. This
 is a module, so you can use:
@@ -18,7 +35,7 @@ and then execute the function simply as:
 This exact same thing is done in test.py, and was verified to work e.g.
 ```
 $ cat test.py 
-from binary_to_eddy import detect
+from binary_to_eddy.detect import detect
 dayString="0000231552"
 lat=20 
 lng=170
